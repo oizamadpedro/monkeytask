@@ -1,6 +1,7 @@
 import mysql.connector
 import os
 import dotenv
+import hashlib
 
 dotenv.load_dotenv('.././app.env')
 
@@ -15,6 +16,10 @@ config = {
   'host': DB_HOST,
   'database': DB_NAME
 }
+
+def hash_password(password):
+  hashed_password = hashlib.sha256(password.encode()).hexdigest()
+  return hashed_password
 
 def insDB(query, values): 
   db = mysql.connector.connect(**config)

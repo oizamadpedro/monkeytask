@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import task
+from task.routes import task
+from auth.routes import auth
 
 app = FastAPI()
 
@@ -18,6 +19,7 @@ app.add_middleware(
 )
 
 app.include_router(task.router, tags=["tasks"])
+app.include_router(auth.router, tags=["auth"])
 
 @app.get("/")
 def helloWorld():
