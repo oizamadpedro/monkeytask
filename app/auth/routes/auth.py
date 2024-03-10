@@ -3,12 +3,28 @@ from fastapi.responses import Response
 from auth.services.authService import authService
 from auth.models.userModel import User, UserLogin
 from utils import utils as Utils
+from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import json
 import datetime
 import jwt
 
+security = HTTPBearer()
+router = APIRouter()
 SECRET = "S&&&p3ro9SCRETO"
 ALGORITHM = "HS256"
+
+def decodeToken(token):
+    try:
+        decoded = jwt.decode(token, SECRET, algorithms=ALGORITHM, options={
+            "verify_exp": True,
+            # Você pode adicionar outras opções de verificação aqui
+        })
+        return decoded
+    except jwt.ExpiredSignatureError:
+        return {"error": True, "message": "Expired Signature"}
+    except jwt.InvalidTokenError:
+        return {"error": True, "message": "Invalid Token"}
 
 def createToken(data: dict, expiresTime = None):
     to_encode = data.copy()
@@ -23,10 +39,20 @@ def createToken(data: dict, expiresTime = None):
     encoded_jwt = jwt.encode(to_encode, SECRET, algorithm=ALGORITHM)
     return encoded_jwt
 
-router = APIRouter()
-
 def responsePayload(content, status_code):
     return Response(content=json.dumps(content),  media_type="application/json", status_code=status_code)
+
+@router.get("/auth/v1/user/")
+def get_user(credentials: HTTPAuthorizationCredentials = Security(security)):
+    if credentials:
+        token = credentials.credentials
+        data = decodeToken(token)
+        if "error" in data:
+            return data
+        else:
+            return {"data": data}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid authorization credentials")
 
 @router.post("/auth/v1/register")
 def registerUser(user: User):

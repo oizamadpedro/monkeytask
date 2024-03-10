@@ -7,3 +7,4 @@ class Task(BaseModel):
     creationAt: str = None
     updatedAt: str = None
     finishedAt: str = None
+    user_id: int = None
